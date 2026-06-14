@@ -169,7 +169,38 @@ export const useOrderStore = create<OrderStore>()(
             reviewTags: o.reviewTags || [],
             reviewPhotos: o.reviewPhotos || []
           }));
-          set({ orders: withNodes });
+          
+          const existingComplaints = get().complaints;
+          const newComplaints: ComplaintData[] = [...existingComplaints];
+          
+          withNodes.forEach(o => {
+            if (o.complaint && o.complaint !== '已处理' && o.complaint !== '') {
+              const exists = existingComplaints.some(c => c.orderId === o.id);
+              if (!exists) {
+                newComplaints.push({
+                  id: `c_init_${o.id}`,
+                  orderId: o.id,
+                  content: o.complaint,
+                  status: 'pending',
+                  createTime: o.createTime
+                });
+              }
+            }
+          });
+          
+          set({ orders: withNodes, complaints: newComplaints });
+        } else {
+          const syncedComplaints = get().complaints.map(c => {
+            const order = get().orders.find(o => o.id === c.orderId);
+            if (order && order.complaint === '已处理' && c.status !== 'resolved') {
+              return { ...c, status: 'resolved' as const };
+            }
+            return c;
+          }).filter(c => get().orders.some(o => o.id === c.orderId));
+          
+          if (JSON.stringify(syncedComplaints) !== JSON.stringify(get().complaints)) {
+            set({ complaints: syncedComplaints });
+          }
         }
       },
 
@@ -455,9 +486,26 @@ export const useOrderStore = create<OrderStore>()(
           ? Number((ratedOrders.reduce((s, o) => s + (o.rating || 0), 0) / ratedOrders.length).toFixed(1))
           : 4.8;
         
-        const relevantComplaints = complaints.filter(c => 
-          targetOrders.some(o => o.id === c.orderId)
+        const orderIds = new Set(targetOrders.map(o => o.id));
+        
+        const pendingComplaintsFromArray = complaints.filter(c => 
+          orderIds.has(c.orderId) && c.status === 'pending'
         );
+        
+        const pendingComplaintsFromOrders = targetOrders.filter(o => 
+          o.complaint && o.complaint !== '已处理' && o.complaint !== '' &&
+          !complaints.some(c => c.orderId === o.id && c.status === 'resolved')
+        );
+        
+        const allPendingComplaintIds = new Set([
+          ...pendingComplaintsFromArray.map(c => c.orderId),
+          ...pendingComplaintsFromOrders.map(o => o.id)
+        ]);
+        
+        const allComplaintIds = new Set([
+          ...complaints.filter(c => orderIds.has(c.orderId)).map(c => c.orderId),
+          ...targetOrders.filter(o => o.complaint && o.complaint !== '').map(o => o.id)
+        ]);
         
         return {
           totalOrders: targetOrders.length,
@@ -466,15 +514,15 @@ export const useOrderStore = create<OrderStore>()(
           servingOrders: targetOrders.filter(o => o.status === 'serving').length,
           completedOrders: completed.length,
           overdueOrders: targetOrders.filter(o => o.isOverdue).length,
-          complaintCount: relevantComplaints.length,
-          pendingComplaintCount: relevantComplaints.filter(c => c.status === 'pending').length,
+          complaintCount: allComplaintIds.size,
+          pendingComplaintCount: allPendingComplaintIds.size,
           totalRevenue,
           avgRating
         };
       }
     }),
     {
-      name: 'peizhen-order-store-v2',
+      name: 'peizhen-order-store-v3',
       partialize: (state) => ({
         orders: state.orders,
         complaints: state.complaints,

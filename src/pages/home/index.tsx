@@ -250,6 +250,17 @@ const HomePage: React.FC = () => {
                         {order.checkItems.slice(0, 2).join('、')}
                         {order.checkItems.length > 2 ? '...' : ''}
                       </Text>
+                      {order.actualDuration && order.actualDuration !== order.duration && (
+                        <Text style={{ fontSize: '24rpx', color: '#1677FF', marginTop: '6rpx' }}>
+                          ⏱️ 时长 {order.duration}分钟
+                          {order.actualDuration > order.duration && ` (+${order.actualDuration - order.duration}分钟追加)`}
+                        </Text>
+                      )}
+                      {order.complaint === '已处理' && (
+                        <Text style={{ fontSize: '24rpx', color: '#52c41a', marginTop: '6rpx' }}>
+                          ✓ 投诉已处理
+                        </Text>
+                      )}
                     </View>
                     <View className={styles.orderActions}>
                       {order.status === 'pending' && (

@@ -5,9 +5,8 @@ import classnames from 'classnames';
 import StatusTag from '@/components/StatusTag';
 import Timeline from '@/components/Timeline';
 import { mockCompanions } from '@/data/mockCompanions';
-import { useOrderStore } from '@/store/useOrderStore';
-import { buildTrackNodesFromStatus } from '@/store/useOrderStore';
-import { Order } from '@/types/order';
+import { useOrderStore, generateDefaultNodes } from '@/store/useOrderStore';
+import { Order, ServiceNode } from '@/types/order';
 import styles from './index.module.scss';
 
 const OrderDetailPage: React.FC = () => {
@@ -35,9 +34,12 @@ const OrderDetailPage: React.FC = () => {
     return mockCompanions.find(c => c.id === order.companionId);
   }, [order]);
 
-  const trackNodes = useMemo(() => {
+  const trackNodes = useMemo<ServiceNode[]>(() => {
     if (!order) return [];
-    return buildTrackNodesFromStatus(order);
+    if (order.nodes && order.nodes.length > 0) {
+      return order.nodes.map(n => ({ ...n }));
+    }
+    return generateDefaultNodes(order.status);
   }, [order]);
 
   const statusTextMap = {

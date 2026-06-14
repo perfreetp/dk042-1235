@@ -4,6 +4,8 @@ import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import StatCard from '@/components/StatCard';
 import { useOrderStore } from '@/store/useOrderStore';
+import { Order } from '@/types/order';
+import dayjs from 'dayjs';
 import styles from './index.module.scss';
 
 const StatsPage: React.FC = () => {
@@ -18,16 +20,16 @@ const StatsPage: React.FC = () => {
   });
 
   const stats = useMemo(() => getStats(activeTab), [activeTab, getStats]);
-  const allOrders = useMemo(() => getOrdersByTime('all'), [getOrdersByTime]);
+  const rangeOrders = useMemo(() => getOrdersByTime(activeTab), [activeTab, getOrdersByTime]);
 
   const overdueOrders = useMemo(
-    () => allOrders.filter(o => o.isOverdue && o.status !== 'completed'),
-    [allOrders]
+    () => rangeOrders.filter(o => o.isOverdue && o.status !== 'completed'),
+    [rangeOrders]
   );
 
   const pendingComplaints = useMemo(
-    () => allOrders.filter(o => o.complaint && o.complaint !== '已处理'),
-    [allOrders]
+    () => rangeOrders.filter(o => o.complaint && o.complaint !== '已处理'),
+    [rangeOrders]
   );
 
   const tabs = [
@@ -62,7 +64,7 @@ const StatsPage: React.FC = () => {
   const quickEntries = [
     { icon: '📊', label: '数据报表', action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) },
     { icon: '💰', label: '结算明细', action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) },
-    { icon: '�', label: '投诉管理', action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) },
+    { icon: '📝', label: '投诉管理', action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) },
     { icon: '👥', label: '绩效统计', action: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) },
   ];
 
@@ -124,13 +126,13 @@ const StatsPage: React.FC = () => {
       <View className={styles.section}>
         <View className={styles.sectionHeader}>
           <Text className={styles.sectionTitle}>超时提醒</Text>
-          <Text className={styles.sectionMore} onClick={() => Taro.switchTab({ url: '/pages/orders/index' })}>
-            查看全部 →
+          <Text className={styles.sectionMore}>
+            共{overdueOrders.length}条 →
           </Text>
         </View>
         {overdueOrders.length === 0 ? (
           <View className={styles.emptyCard}>
-            <Text style={{ color: '#86909c', fontSize: '26rpx' }}>暂无超时订单</Text>
+            <Text style={{ color: '#86909c', fontSize: '26rpx' }}>该时间段暂无超时订单</Text>
           </View>
         ) : (
           <ScrollView className={styles.overdueList} scrollX>
@@ -142,7 +144,7 @@ const StatsPage: React.FC = () => {
                 </View>
                 <Text className={styles.overduePatient}>{order.patient.name}</Text>
                 <Text className={styles.overdueHospital}>{order.hospitalName}</Text>
-                <Text className={styles.overdueTime}>{order.appointmentTime}</Text>
+                <Text className={styles.overdueTime}>{order.appointmentTime.slice(5, 16)}</Text>
               </View>
             ))}
           </ScrollView>
@@ -152,13 +154,13 @@ const StatsPage: React.FC = () => {
       <View className={styles.section}>
         <View className={styles.sectionHeader}>
           <Text className={styles.sectionTitle}>投诉记录</Text>
-          <Text className={styles.sectionMore} onClick={() => Taro.showToast({ title: '查看全部', icon: 'none' })}>
-            共{stats.complaintCount}条 →
+          <Text className={styles.sectionMore}>
+            共{pendingComplaints.length}条待处理 →
           </Text>
         </View>
         {pendingComplaints.length === 0 ? (
           <View className={styles.emptyCard}>
-            <Text style={{ color: '#86909c', fontSize: '26rpx' }}>暂无待处理投诉</Text>
+            <Text style={{ color: '#86909c', fontSize: '26rpx' }}>该时间段暂无待处理投诉</Text>
           </View>
         ) : (
           <View className={styles.complaintList}>
@@ -166,9 +168,14 @@ const StatsPage: React.FC = () => {
               <View key={order.id} className={styles.complaintCard}>
                 <View className={styles.complaintHeader}>
                   <Text className={styles.complaintOrderNo}>订单号：{order.orderNo}</Text>
-                  <Text className={styles.complaintTime}>{order.createTime}</Text>
+                  <Text className={styles.complaintTime}>{dayjs(order.createTime).format('MM-DD HH:mm')}</Text>
                 </View>
                 <Text className={styles.complaintContent}>投诉内容：{order.complaint}</Text>
+                <View className={styles.complaintMeta}>
+                  <Text style={{ fontSize: '24rpx', color: '#86909c' }}>
+                    客户：{order.patient.name} · {order.hospitalName}
+                  </Text>
+                </View>
                 <View className={styles.complaintActions}>
                   <View className={styles.complaintBtn} onClick={() => handleViewOrder(order.id)}>
                     <Text>查看详情</Text>
