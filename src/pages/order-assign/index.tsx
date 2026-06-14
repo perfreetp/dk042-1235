@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { useRouter } from '@tarojs/taro';
+import Taro, { useRouter, useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import { mockCompanions } from '@/data/mockCompanions';
-import { mockOrders } from '@/data/mockOrders';
+import { useOrderStore } from '@/store/useOrderStore';
 import { Companion } from '@/types/companion';
 import { Order } from '@/types/order';
 import styles from './index.module.scss';
@@ -23,9 +23,17 @@ const OrderAssignPage: React.FC = () => {
   const [filterLevel, setFilterLevel] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
+  const initOrders = useOrderStore(state => state.initOrders);
+  const getOrderById = useOrderStore(state => state.getOrderById);
+  const assignOrder = useOrderStore(state => state.assignOrder);
+
+  useDidShow(() => {
+    initOrders();
+  });
+
   const order = useMemo<Order | undefined>(() => {
-    return mockOrders.find(o => o.id === orderId);
-  }, [orderId]);
+    return getOrderById(orderId || '');
+  }, [orderId, getOrderById]);
 
   const companionsWithScore = useMemo(() => {
     return mockCompanions
@@ -96,7 +104,9 @@ const OrderAssignPage: React.FC = () => {
       title: '确认派单',
       content: `确定将订单派给 ${companionsWithScore.find(c => c.id === selectedCompanion)?.name} 吗？`,
       success: (res) => {
-        if (res.confirm) {
+        if (res.confirm && orderId) {
+          const companion = companionsWithScore.find(c => c.id === selectedCompanion);
+          assignOrder(orderId, selectedCompanion, companion?.name || '', companion?.phone || '');
           Taro.showToast({
             title: '派单成功',
             icon: 'success',

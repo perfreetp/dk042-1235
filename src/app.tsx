@@ -1,14 +1,20 @@
 import React, { useEffect } from 'react';
 import { useDidShow, useDidHide } from '@tarojs/taro';
+import { useOrderStore } from '@/store/useOrderStore';
 // 全局样式
 import './app.scss';
 
 function App(props) {
-  // 可以使用所有的 React Hooks
-  useEffect(() => {});
+  const initOrders = useOrderStore(state => state.initOrders);
+
+  useEffect(() => {
+    initOrders();
+  }, [initOrders]);
 
   // 对应 onShow
-  useDidShow(() => {});
+  useDidShow(() => {
+    initOrders();
+  });
 
   // 对应 onHide
   useDidHide(() => {});

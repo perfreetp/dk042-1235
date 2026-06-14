@@ -49,6 +49,10 @@ export interface Order {
   complaint?: string;
   rating?: number;
   review?: string;
+  reviewTags?: string[];
+  reviewPhotos?: string[];
+  isAnonymousReview?: boolean;
+  supplementMessages?: { id: string; content: string; time: string; from: 'customer' | 'companion' }[];
 }
 
 export interface HospitalOrderGroup {

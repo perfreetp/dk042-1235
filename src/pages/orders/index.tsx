@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, Input } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import OrderCard from '@/components/OrderCard';
 import StatusTag from '@/components/StatusTag';
-import { mockOrders } from '@/data/mockOrders';
+import { useOrderStore } from '@/store/useOrderStore';
 import { mockHospitals } from '@/data/mockHospitals';
 import { OrderStatus, Order } from '@/types/order';
 import styles from './index.module.scss';
@@ -29,10 +29,16 @@ const OrdersPage: React.FC = () => {
   const [searchText, setSearchText] = useState<string>('');
   const [selectedHospital, setSelectedHospital] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<string>('today');
-  const [showHospitalFilter, setShowHospitalFilter] = useState(false);
+  
+  const initOrders = useOrderStore(state => state.initOrders);
+  const getOrdersByTime = useOrderStore(state => state.getOrdersByTime);
+
+  useDidShow(() => {
+    initOrders();
+  });
 
   const filteredOrders = useMemo(() => {
-    let result = [...mockOrders];
+    let result = getOrdersByTime(timeFilter as any);
 
     if (activeTab !== 'all') {
       result = result.filter(o => o.status === activeTab);
@@ -53,7 +59,7 @@ const OrdersPage: React.FC = () => {
     }
 
     return result;
-  }, [activeTab, searchText, selectedHospital, timeFilter]);
+  }, [activeTab, searchText, selectedHospital, timeFilter, getOrdersByTime]);
 
   const handleTabClick = (key: string) => {
     setActiveTab(key);

@@ -1,25 +1,43 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { useRouter } from '@tarojs/taro';
+import Taro, { useRouter, useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import StatusTag from '@/components/StatusTag';
 import Timeline from '@/components/Timeline';
-import { mockOrders } from '@/data/mockOrders';
 import { mockCompanions } from '@/data/mockCompanions';
+import { useOrderStore } from '@/store/useOrderStore';
+import { buildTrackNodesFromStatus } from '@/store/useOrderStore';
 import { Order } from '@/types/order';
 import styles from './index.module.scss';
 
 const OrderDetailPage: React.FC = () => {
   const router = useRouter();
-  const orderId = router.params.id;
+  const orderId = router.params.id || router.params.orderId;
   
+  const initOrders = useOrderStore(state => state.initOrders);
+  const getOrderById = useOrderStore(state => state.getOrderById);
+  const reassignOrder = useOrderStore(state => state.reassignOrder);
+  const applyExtraDuration = useOrderStore(state => state.applyExtraDuration);
+  const handleExtraDuration = useOrderStore(state => state.handleExtraDuration);
+  const addComplaint = useOrderStore(state => state.addComplaint);
+  const handleComplaint = useOrderStore(state => state.handleComplaint);
+
+  useDidShow(() => {
+    initOrders();
+  });
+
   const order = useMemo<Order | undefined>(() => {
-    return mockOrders.find(o => o.id === orderId);
-  }, [orderId]);
+    return getOrderById(orderId || '');
+  }, [orderId, getOrderById]);
 
   const companion = useMemo(() => {
     if (!order?.companionId) return null;
     return mockCompanions.find(c => c.id === order.companionId);
+  }, [order]);
+
+  const trackNodes = useMemo(() => {
+    if (!order) return [];
+    return buildTrackNodesFromStatus(order);
   }, [order]);
 
   const statusTextMap = {
@@ -49,6 +67,84 @@ const OrderDetailPage: React.FC = () => {
     Taro.showToast({ title: '消息功能开发中', icon: 'none' });
   };
 
+  const handleReassign = () => {
+    Taro.showActionSheet({
+      itemList: ['改派给其他陪诊师', '取消当前派单'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          Taro.showModal({
+            title: '改派订单',
+            editable: true,
+            placeholderText: '请输入改派原因（选填）',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                Taro.showToast({ title: '已取消派单，请重新分配', icon: 'success' });
+                if (orderId) {
+                  reassignOrder(orderId, '', modalRes.content || '客户要求改派');
+                  setTimeout(() => {
+                    Taro.navigateTo({ url: `/pages/order-assign/index?orderId=${orderId}` });
+                  }, 1000);
+                }
+              }
+            }
+          });
+        } else if (res.tapIndex === 1 && orderId) {
+          reassignOrder(orderId, '', '调度取消派单');
+          Taro.showToast({ title: '已取消派单', icon: 'success' });
+        }
+      }
+    });
+  };
+
+  const handleAddDuration = () => {
+    Taro.showActionSheet({
+      itemList: ['追加30分钟（¥50）', '追加60分钟（¥100）', '追加120分钟（¥200）'],
+      success: (res) => {
+        const durations = [30, 60, 120];
+        const duration = durations[res.tapIndex];
+        Taro.showModal({
+          title: '追加时长',
+          content: `确定要为该订单追加${duration}分钟服务时长吗？`,
+          success: (modalRes) => {
+            if (modalRes.confirm && orderId) {
+              applyExtraDuration(orderId, duration);
+              handleExtraDuration(orderId, true);
+              Taro.showToast({ title: `已追加${duration}分钟`, icon: 'success' });
+            }
+          }
+        });
+      }
+    });
+  };
+
+  const handleAddComplaint = () => {
+    Taro.showModal({
+      title: '添加投诉',
+      editable: true,
+      placeholderText: '请输入投诉内容',
+      success: (res) => {
+        if (res.confirm && res.content && orderId) {
+          addComplaint(orderId, res.content);
+          Taro.showToast({ title: '投诉已记录', icon: 'success' });
+        }
+      }
+    });
+  };
+
+  const handleResolveComplaint = () => {
+    Taro.showModal({
+      title: '处理投诉',
+      editable: true,
+      placeholderText: '请输入处理结果',
+      success: (res) => {
+        if (res.confirm && orderId) {
+          handleComplaint(orderId, res.content || '已妥善处理');
+          Taro.showToast({ title: '投诉已处理', icon: 'success' });
+        }
+      }
+    });
+  };
+
   if (!order) {
     return (
       <View className={styles.page}>
@@ -61,12 +157,27 @@ const OrderDetailPage: React.FC = () => {
 
   const showAssignBtn = order.status === 'pending';
   const showServiceBtn = order.status === 'assigned' || order.status === 'serving';
+  const canReassign = order.status === 'assigned' || order.status === 'serving';
+  const canAddDuration = order.status === 'serving' || order.status === 'assigned';
+  const hasComplaint = order.complaint && order.complaint !== '已处理';
 
   return (
     <ScrollView className={styles.page} scrollY>
       <View className={styles.statusSection}>
         <View className={styles.statusRow}>
           <StatusTag status={order.status} size="md" />
+          {order.isOverdue && (
+            <View style={{
+              backgroundColor: '#f53f3f',
+              color: '#fff',
+              padding: '4rpx 16rpx',
+              borderRadius: '8rpx',
+              fontSize: '22rpx',
+              marginLeft: '16rpx'
+            }}>
+              <Text>超时</Text>
+            </View>
+          )}
         </View>
         <Text className={styles.statusText}>{statusTextMap[order.status]}</Text>
         <View style={{ marginTop: '16rpx' }}>
@@ -74,6 +185,70 @@ const OrderDetailPage: React.FC = () => {
         </View>
         <Text className={styles.orderTime}>下单时间：{order.createTime}</Text>
       </View>
+
+      {(canReassign || canAddDuration || hasComplaint) && (
+        <View className={styles.card} style={{ border: '2rpx dashed #1677FF' }}>
+          <Text className={styles.cardTitle}>调度操作</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '16rpx' }}>
+            {canReassign && (
+              <View
+                className={styles.actionTag}
+                onClick={handleReassign}
+              >
+                <Text>🔄 改派订单</Text>
+              </View>
+            )}
+            {canAddDuration && (
+              <View
+                className={styles.actionTag}
+                onClick={handleAddDuration}
+              >
+                <Text>⏱️ 追加时长</Text>
+              </View>
+            )}
+            {!hasComplaint && order.status !== 'pending' && (
+              <View
+                className={styles.actionTag}
+                onClick={handleAddComplaint}
+              >
+                <Text>📢 记录投诉</Text>
+              </View>
+            )}
+            {hasComplaint && (
+              <View
+                className={classnames(styles.actionTag, styles.warning)}
+                onClick={handleResolveComplaint}
+              >
+                <Text>✓ 处理投诉</Text>
+              </View>
+            )}
+          </View>
+          {hasComplaint && (
+            <View style={{
+              marginTop: '16rpx',
+              backgroundColor: '#fff7e8',
+              padding: '16rpx 24rpx',
+              borderRadius: '8rpx'
+            }}>
+              <Text style={{ fontSize: '26rpx', color: '#ff7d00' }}>
+                ⚠️ 当前投诉：{order.complaint}
+              </Text>
+            </View>
+          )}
+          {order.actualDuration && order.actualDuration > order.duration && (
+            <View style={{
+              marginTop: '16rpx',
+              backgroundColor: '#e8f3ff',
+              padding: '16rpx 24rpx',
+              borderRadius: '8rpx'
+            }}>
+              <Text style={{ fontSize: '26rpx', color: '#1677FF' }}>
+                ⏱️ 已追加时长：+{order.actualDuration - order.duration}分钟
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <View className={styles.card}>
         <Text className={styles.cardTitle}>医院信息</Text>
@@ -170,7 +345,7 @@ const OrderDetailPage: React.FC = () => {
 
       <View className={styles.card}>
         <Text className={styles.cardTitle}>服务进度</Text>
-        <Timeline nodes={order.nodes} />
+        <Timeline nodes={trackNodes} />
       </View>
 
       {order.receiptPhotos && order.receiptPhotos.length > 0 && (
@@ -183,6 +358,7 @@ const OrderDetailPage: React.FC = () => {
                 className={styles.receiptPhoto} 
                 src={photo}
                 mode="aspectFill"
+                onClick={() => Taro.previewImage({ urls: order.receiptPhotos!, current: photo })}
               />
             ))}
           </View>
@@ -198,15 +374,70 @@ const OrderDetailPage: React.FC = () => {
         </View>
       )}
 
-      {order.rating && (
+      {order.supplementMessages && order.supplementMessages.length > 0 && (
+        <View className={styles.card}>
+          <Text className={styles.cardTitle}>补充需求记录</Text>
+          <View>
+            {order.supplementMessages.map(msg => (
+              <View key={msg.id} style={{
+                padding: '16rpx',
+                backgroundColor: msg.from === 'customer' ? '#e8f3ff' : '#f5f7fa',
+                borderRadius: '8rpx',
+                marginBottom: '12rpx'
+              }}>
+                <Text style={{ fontSize: '26rpx', color: '#4e5969' }}>
+                  [{msg.from === 'customer' ? '客户' : '陪诊师'}] {msg.time}
+                </Text>
+                <Text style={{ fontSize: '28rpx', color: '#1d2129', marginTop: '8rpx' }}>
+                  {msg.content}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {(order.rating || order.reviewTags?.length || order.reviewPhotos?.length) && (
         <View className={styles.reviewCard}>
           <View className={styles.reviewHeader}>
             <Text className={styles.reviewTitle}>客户评价</Text>
-            <Text className={styles.reviewRating}>
-              {'⭐'.repeat(order.rating)} {order.rating}.0
+            {order.rating && (
+              <Text className={styles.reviewRating}>
+                {'⭐'.repeat(order.rating)} {order.rating}.0
+              </Text>
+            )}
+          </View>
+          {order.reviewTags && order.reviewTags.length > 0 && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '12rpx', marginBottom: '16rpx' }}>
+              {order.reviewTags.map(tag => (
+                <Text key={tag} style={{
+                  padding: '4rpx 16rpx',
+                  backgroundColor: '#1677FF',
+                  color: '#fff',
+                  borderRadius: '8rpx',
+                  fontSize: '24rpx'
+                }}>{tag}</Text>
+              ))}
+            </View>
+          )}
+          {order.review && <Text className={styles.reviewContent}>{order.review}</Text>}
+          {order.reviewPhotos && order.reviewPhotos.length > 0 && (
+            <View style={{ marginTop: '16rpx', flexDirection: 'row', flexWrap: 'wrap', gap: '16rpx' }}>
+              {order.reviewPhotos.map((p, i) => (
+                <Image
+                  key={i}
+                  src={p}
+                  mode="aspectFill"
+                  style={{ width: '160rpx', height: '160rpx', borderRadius: '8rpx' }}
+                />
+              ))}
+            </View>
+          )}
+          <View style={{ marginTop: '12rpx' }}>
+            <Text style={{ fontSize: '24rpx', color: '#86909c' }}>
+              {order.isAnonymousReview ? '匿名用户' : order.patient.name}
             </Text>
           </View>
-          <Text className={styles.reviewContent}>{order.review}</Text>
         </View>
       )}
 
@@ -240,6 +471,11 @@ const OrderDetailPage: React.FC = () => {
         {showAssignBtn && (
           <View className={classnames(styles.btn, styles.primary)} onClick={handleAssign}>
             <Text>立即派单</Text>
+          </View>
+        )}
+        {canReassign && (
+          <View className={classnames(styles.btn, styles.warning)} onClick={handleReassign}>
+            <Text>改派</Text>
           </View>
         )}
         {showServiceBtn && (

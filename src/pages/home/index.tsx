@@ -1,19 +1,61 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, Image } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import dayjs from 'dayjs';
 import classnames from 'classnames';
 import StatusTag from '@/components/StatusTag';
 import StatCard from '@/components/StatCard';
 import OrderCard from '@/components/OrderCard';
-import { getHospitalOrderGroups, getStatsData } from '@/data/mockOrders';
+import { useOrderStore } from '@/store/useOrderStore';
+import { mockHospitals } from '@/data/mockHospitals';
 import { HospitalOrderGroup, Order } from '@/types/order';
 import styles from './index.module.scss';
 
 const HomePage: React.FC = () => {
   const [expandedHospital, setExpandedHospital] = useState<string | null>(null);
-  const stats = getStatsData();
-  const hospitalGroups = getHospitalOrderGroups();
+  
+  const initOrders = useOrderStore(state => state.initOrders);
+  const getStats = useOrderStore(state => state.getStats);
+  const getOrdersByTime = useOrderStore(state => state.getOrdersByTime);
+  const reassignOrder = useOrderStore(state => state.reassignOrder);
+  const applyExtraDuration = useOrderStore(state => state.applyExtraDuration);
+  const handleExtraDuration = useOrderStore(state => state.handleExtraDuration);
+  const addComplaint = useOrderStore(state => state.addComplaint);
+
+  useDidShow(() => {
+    initOrders();
+  });
+
+  const stats = useMemo(() => getStats('today'), [getStats]);
+  const todayOrders = useMemo(() => getOrdersByTime('today'), [getOrdersByTime]);
+
+  const hospitalGroups = useMemo(() => {
+    const groups: Map<string, HospitalOrderGroup> = new Map();
+    todayOrders.forEach(order => {
+      if (!groups.has(order.hospitalId)) {
+        const hospital = mockHospitals.find(h => h.id === order.hospitalId);
+        groups.set(order.hospitalId, {
+          hospitalId: order.hospitalId,
+          hospitalName: order.hospitalName,
+          hospitalAddress: hospital?.address || '',
+          orders: [],
+          pendingCount: 0,
+          assignedCount: 0,
+          servingCount: 0,
+          completedCount: 0,
+          totalCount: 0
+        });
+      }
+      const group = groups.get(order.hospitalId)!;
+      group.orders.push(order);
+      group.totalCount++;
+      if (order.status === 'pending') group.pendingCount++;
+      else if (order.status === 'assigned') group.assignedCount++;
+      else if (order.status === 'serving') group.servingCount++;
+      else if (order.status === 'completed') group.completedCount++;
+    });
+    return Array.from(groups.values()).sort((a, b) => b.totalCount - a.totalCount);
+  }, [todayOrders]);
 
   const handleHospitalClick = useCallback((hospitalId: string) => {
     setExpandedHospital(prev => prev === hospitalId ? null : hospitalId);
@@ -24,16 +66,62 @@ const HomePage: React.FC = () => {
     Taro.navigateTo({ url: `/pages/order-assign/index?orderId=${orderId}` });
   }, []);
 
+  const handleReassign = useCallback((orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    Taro.showActionSheet({
+      itemList: ['改派给其他陪诊师', '取消当前派单'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          Taro.showToast({ title: '已取消派单，请重新分配', icon: 'success' });
+          reassignOrder(orderId, '', '调度改派');
+          setTimeout(() => {
+            Taro.navigateTo({ url: `/pages/order-assign/index?orderId=${orderId}` });
+          }, 1000);
+        } else if (res.tapIndex === 1) {
+          reassignOrder(orderId, '', '调度取消派单');
+          Taro.showToast({ title: '已取消派单', icon: 'success' });
+        }
+      }
+    });
+  }, [reassignOrder]);
+
+  const handleAddDuration = useCallback((orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    Taro.showActionSheet({
+      itemList: ['追加30分钟（¥50）', '追加60分钟（¥100）'],
+      success: (res) => {
+        const durations = [30, 60];
+        const duration = durations[res.tapIndex];
+        applyExtraDuration(orderId, duration);
+        handleExtraDuration(orderId, true);
+        Taro.showToast({ title: `已追加${duration}分钟`, icon: 'success' });
+      }
+    });
+  }, [applyExtraDuration, handleExtraDuration]);
+
+  const handleAddComplaintQuick = useCallback((orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    Taro.showActionSheet({
+      itemList: ['服务态度不好', '迟到超时', '服务不专业', '其他问题'],
+      success: (res) => {
+        const reasons = ['服务态度不好', '迟到超时', '服务不专业', '其他问题'];
+        addComplaint(orderId, reasons[res.tapIndex]);
+        Taro.showToast({ title: '投诉已记录', icon: 'success' });
+      }
+    });
+  }, [addComplaint]);
+
   const handleOrderClick = useCallback((orderId: string) => {
     Taro.navigateTo({ url: `/pages/order-detail/index?id=${orderId}` });
   }, []);
 
   const handleRefresh = useCallback(() => {
+    initOrders();
     setTimeout(() => {
       Taro.stopPullDownRefresh();
       Taro.showToast({ title: '刷新成功', icon: 'success' });
-    }, 1000);
-  }, []);
+    }, 800);
+  }, [initOrders]);
 
   React.useEffect(() => {
     Taro.onPullDownRefresh(handleRefresh);
@@ -41,6 +129,11 @@ const HomePage: React.FC = () => {
       Taro.offPullDownRefresh(handleRefresh);
     };
   }, [handleRefresh]);
+
+  const pendingCount = todayOrders.filter(o => o.status === 'pending').length;
+  const assignedCount = todayOrders.filter(o => o.status === 'assigned').length;
+  const servingCount = todayOrders.filter(o => o.status === 'serving').length;
+  const completedCount = todayOrders.filter(o => o.status === 'completed').length;
 
   return (
     <ScrollView className={styles.page} scrollY>
@@ -57,9 +150,9 @@ const HomePage: React.FC = () => {
       <View className={styles.statsContainer}>
         <View className={styles.statsGrid}>
           <StatCard title="今日订单" value={stats.totalOrders} color="primary" />
-          <StatCard title="待分配" value={stats.pendingOrders} color="warning" />
-          <StatCard title="服务中" value={stats.servingOrders} color="success" />
-          <StatCard title="已完成" value={stats.completedOrders} color="default" />
+          <StatCard title="待分配" value={pendingCount} color="warning" />
+          <StatCard title="服务中" value={servingCount} color="success" />
+          <StatCard title="已完成" value={completedCount} color="default" />
         </View>
       </View>
 
@@ -106,11 +199,33 @@ const HomePage: React.FC = () => {
                 {group.orders.map((order: Order) => (
                   <View key={order.id} className={styles.orderMiniCard}>
                     <View className={styles.orderInfo} onClick={() => handleOrderClick(order.id)}>
-                      <View style={{ display: 'flex', alignItems: 'center', marginBottom: '8rpx' }}>
+                      <View style={{ display: 'flex', alignItems: 'center', marginBottom: '8rpx', flexWrap: 'wrap', gap: '12rpx' }}>
                         <StatusTag status={order.status} size="sm" />
-                        <Text style={{ marginLeft: '16rpx', fontSize: '26rpx', color: '#4e5969' }}>
+                        <Text style={{ fontSize: '26rpx', color: '#4e5969' }}>
                           {order.appointmentTime.slice(11, 16)}
                         </Text>
+                        {order.isOverdue && (
+                          <View style={{
+                            backgroundColor: '#f53f3f',
+                            color: '#fff',
+                            padding: '2rpx 12rpx',
+                            borderRadius: '6rpx',
+                            fontSize: '20rpx'
+                          }}>
+                            <Text>超时</Text>
+                          </View>
+                        )}
+                        {order.complaint && order.complaint !== '已处理' && (
+                          <View style={{
+                            backgroundColor: '#ff7d00',
+                            color: '#fff',
+                            padding: '2rpx 12rpx',
+                            borderRadius: '6rpx',
+                            fontSize: '20rpx'
+                          }}>
+                            <Text>投诉</Text>
+                          </View>
+                        )}
                       </View>
                       <Text className={styles.orderPatient}>
                         {order.patient.name} · {order.patient.age}岁 · {order.department}
@@ -120,16 +235,38 @@ const HomePage: React.FC = () => {
                         {order.checkItems.length > 2 ? '...' : ''}
                       </Text>
                     </View>
-                    {order.status === 'pending' && (
-                      <View className={styles.orderAction}>
+                    <View className={styles.orderActions}>
+                      {order.status === 'pending' && (
                         <View 
                           className={styles.assignBtn}
                           onClick={(e) => handleAssign(order.id, e as any)}
                         >
                           <Text>派单</Text>
                         </View>
-                      </View>
-                    )}
+                      )}
+                      {(order.status === 'assigned' || order.status === 'serving') && (
+                        <View style={{ display: 'flex', flexDirection: 'column', gap: '8rpx' }}>
+                          <View
+                            className={styles.reassignBtn}
+                            onClick={(e) => handleReassign(order.id, e as any)}
+                          >
+                            <Text>改派</Text>
+                          </View>
+                          <View
+                            className={styles.addTimeBtn}
+                            onClick={(e) => handleAddDuration(order.id, e as any)}
+                          >
+                            <Text>加时</Text>
+                          </View>
+                          <View
+                            className={styles.complaintBtn}
+                            onClick={(e) => handleAddComplaintQuick(order.id, e as any)}
+                          >
+                            <Text>投诉</Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
                   </View>
                 ))}
               </View>

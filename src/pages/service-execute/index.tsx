@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, Image, ScrollView, Textarea } from '@tarojs/components';
-import Taro, { useRouter } from '@tarojs/taro';
+import Taro, { useRouter, useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
-import { mockOrders } from '@/data/mockOrders';
+import { useOrderStore } from '@/store/useOrderStore';
 import { Order, ServiceNode } from '@/types/order';
 import styles from './index.module.scss';
 
@@ -17,14 +17,29 @@ const ServiceExecutePage: React.FC = () => {
   const [timer, setTimer] = useState<string>('00:00:00');
   const [startTime, setStartTime] = useState<number | null>(null);
 
+  const initOrders = useOrderStore(state => state.initOrders);
+  const getOrderById = useOrderStore(state => state.getOrderById);
+  const updateOrderStatus = useOrderStore(state => state.updateOrderStatus);
+  const updateOrderNodes = useOrderStore(state => state.updateOrderNodes);
+  const completeService = useOrderStore(state => state.completeService);
+  const uploadReceipts = useOrderStore(state => state.uploadReceipts);
+
+  useDidShow(() => {
+    initOrders();
+  });
+
   const order = useMemo<Order | undefined>(() => {
-    return mockOrders.find(o => o.id === orderId);
-  }, [orderId]);
+    return getOrderById(orderId || '');
+  }, [orderId, getOrderById]);
 
   useEffect(() => {
     if (order) {
       setNodes(order.nodes);
-      if (order.status === 'serving') {
+      setVisitResult(order.visitResult || '');
+      setPhotos(order.receiptPhotos || []);
+      if (order.status === 'completed') {
+        setServiceStep('completed');
+      } else if (order.status === 'serving') {
         setServiceStep('serving');
         setStartTime(Date.now() - 3600000);
       } else if (order.status === 'assigned') {
@@ -58,23 +73,11 @@ const ServiceExecutePage: React.FC = () => {
       title: '确认接单',
       content: '确定要接下这个陪诊订单吗？',
       success: (res) => {
-        if (res.confirm) {
-          setServiceStep('going');
-          Taro.showToast({ title: '接单成功', icon: 'success' });
-        }
-      }
-    });
-  };
-
-  const handleStart = () => {
-    Taro.showModal({
-      title: '出发报备',
-      content: '确定已出发前往医院吗？',
-      success: (res) => {
-        if (res.confirm) {
+        if (res.confirm && orderId) {
           setServiceStep('going');
           setStartTime(Date.now());
-          Taro.showToast({ title: '已报备出发', icon: 'success' });
+          updateOrderStatus(orderId, 'assigned');
+          Taro.showToast({ title: '接单成功', icon: 'success' });
         }
       }
     });
@@ -85,12 +88,14 @@ const ServiceExecutePage: React.FC = () => {
       title: '到院定位',
       content: '确定已到达医院吗？系统将记录位置。',
       success: (res) => {
-        if (res.confirm) {
+        if (res.confirm && orderId) {
           setServiceStep('arrived');
-          setNodes(prev => prev.map((n, i) => 
+          const newNodes = nodes.map((n, i) => 
             i <= 1 ? { ...n, status: 'done' as const, time: new Date().toLocaleTimeString().slice(0, 5) } :
             i === 2 ? { ...n, status: 'current' as const } : n
-          ));
+          );
+          setNodes(newNodes);
+          updateOrderNodes(orderId, newNodes);
           Taro.showToast({ title: '已确认到院', icon: 'success' });
         }
       }
@@ -98,21 +103,22 @@ const ServiceExecutePage: React.FC = () => {
   };
 
   const handleNodeCheckIn = (nodeId: string) => {
-    setNodes(prev => {
-      const newNodes = [...prev];
-      const index = newNodes.findIndex(n => n.id === nodeId);
-      if (index >= 0) {
-        newNodes[index] = { 
-          ...newNodes[index], 
-          status: 'done' as const, 
-          time: new Date().toLocaleTimeString().slice(0, 5) 
-        };
-        if (index + 1 < newNodes.length) {
-          newNodes[index + 1] = { ...newNodes[index + 1], status: 'current' as const };
-        }
+    const newNodes = nodes.map((n, i) => {
+      if (n.id === nodeId) {
+        return { ...n, status: 'done' as const, time: new Date().toLocaleTimeString().slice(0, 5) };
       }
-      return newNodes;
+      const targetIndex = nodes.findIndex(t => t.id === nodeId);
+      if (i === targetIndex + 1 && n.status === 'pending') {
+        return { ...n, status: 'current' as const };
+      }
+      return n;
     });
+    setNodes(newNodes);
+    setServiceStep('serving');
+    if (orderId) {
+      updateOrderStatus(orderId, 'serving');
+      updateOrderNodes(orderId, newNodes);
+    }
     Taro.showToast({ title: '打卡成功', icon: 'success' });
   };
 
@@ -122,6 +128,9 @@ const ServiceExecutePage: React.FC = () => {
       success: (res) => {
         const newPhotos = [...photos, ...res.tempFilePaths];
         setPhotos(newPhotos);
+        if (orderId) {
+          uploadReceipts(orderId, newPhotos);
+        }
         Taro.showToast({ title: '上传成功', icon: 'success' });
       }
     });
@@ -133,7 +142,11 @@ const ServiceExecutePage: React.FC = () => {
       content: '确定要删除这张照片吗？',
       success: (res) => {
         if (res.confirm) {
-          setPhotos(prev => prev.filter((_, i) => i !== index));
+          const newPhotos = photos.filter((_, i) => i !== index);
+          setPhotos(newPhotos);
+          if (orderId) {
+            uploadReceipts(orderId, newPhotos);
+          }
         }
       }
     });
@@ -149,8 +162,11 @@ const ServiceExecutePage: React.FC = () => {
       title: '完成服务',
       content: '确认所有服务已完成，提交结束服务？',
       success: (res) => {
-        if (res.confirm) {
+        if (res.confirm && orderId && startTime) {
+          const duration = Math.round((Date.now() - startTime) / 60000);
           setServiceStep('completed');
+          const finalNodes = nodes.map(n => ({ ...n, status: 'done' as const }));
+          completeService(orderId, duration, visitResult, photos, finalNodes);
           Taro.showToast({ title: '服务已完成', icon: 'success' });
           setTimeout(() => {
             Taro.navigateBack();
@@ -279,12 +295,14 @@ const ServiceExecutePage: React.FC = () => {
           {photos.map((photo, index) => (
             <View key={index} className={styles.photoItem}>
               <Image className={styles.photoImg} src={photo} mode="aspectFill" />
-              <View className={styles.photoDelete} onClick={() => handleDeletePhoto(index)}>
-                <Text>×</Text>
-              </View>
+              {serviceStep !== 'completed' && (
+                <View className={styles.photoDelete} onClick={() => handleDeletePhoto(index)}>
+                  <Text>×</Text>
+                </View>
+              )}
             </View>
           ))}
-          {photos.length < 3 && (
+          {photos.length < 3 && serviceStep !== 'completed' && (
             <View className={styles.uploadBtn} onClick={handleUploadPhoto}>
               <Text className={styles.uploadIcon}>📷</Text>
               <Text className={styles.uploadText}>上传票据</Text>
@@ -301,6 +319,7 @@ const ServiceExecutePage: React.FC = () => {
           value={visitResult}
           onInput={(e) => setVisitResult(e.detail.value)}
           maxlength={500}
+          disabled={serviceStep === 'completed'}
         />
       </View>
 

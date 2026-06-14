@@ -196,6 +196,10 @@
   margin-left: $spacing-md;
 }
 
+.orderActions {
+  margin-left: $spacing-md;
+}
+
 .assignBtn {
   @include button-reset;
   height: 56rpx;
@@ -209,6 +213,51 @@
   &:active {
     opacity: 0.9;
     transform: scale(0.96);
+  }
+}
+
+.reassignBtn {
+  @include button-reset;
+  height: 48rpx;
+  padding: 0 $spacing-sm;
+  background-color: $color-warning;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+  
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.addTimeBtn {
+  @include button-reset;
+  height: 48rpx;
+  padding: 0 $spacing-sm;
+  background-color: $color-success;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+  
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.complaintBtn {
+  @include button-reset;
+  height: 48rpx;
+  padding: 0 $spacing-sm;
+  background-color: $color-danger;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+  
+  &:active {
+    opacity: 0.9;
   }
 }
 
