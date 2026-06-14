@@ -72,13 +72,21 @@ const HomePage: React.FC = () => {
       itemList: ['改派给其他陪诊师', '取消当前派单'],
       success: (res) => {
         if (res.tapIndex === 0) {
-          Taro.showToast({ title: '已取消派单，请重新分配', icon: 'success' });
-          reassignOrder(orderId, '', '调度改派');
-          setTimeout(() => {
-            Taro.navigateTo({ url: `/pages/order-assign/index?orderId=${orderId}` });
-          }, 1000);
+          Taro.showModal({
+            title: '改派订单',
+            content: '已为您重置派单状态，请在新页面重新选择陪诊师',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                reassignOrder(orderId, '', '', '', '调度改派');
+                Taro.showToast({ title: '已取消派单', icon: 'success' });
+                setTimeout(() => {
+                  Taro.navigateTo({ url: `/pages/order-assign/index?orderId=${orderId}` });
+                }, 800);
+              }
+            }
+          });
         } else if (res.tapIndex === 1) {
-          reassignOrder(orderId, '', '调度取消派单');
+          reassignOrder(orderId, '', '', '', '调度取消派单');
           Taro.showToast({ title: '已取消派单', icon: 'success' });
         }
       }
@@ -92,9 +100,17 @@ const HomePage: React.FC = () => {
       success: (res) => {
         const durations = [30, 60];
         const duration = durations[res.tapIndex];
-        applyExtraDuration(orderId, duration);
-        handleExtraDuration(orderId, true);
-        Taro.showToast({ title: `已追加${duration}分钟`, icon: 'success' });
+        Taro.showModal({
+          title: '追加时长',
+          content: `确定要为订单追加${duration}分钟吗？追加后费用自动增加${Math.round(duration / 30) * 50}元。`,
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              applyExtraDuration(orderId, duration);
+              handleExtraDuration(orderId, true);
+              Taro.showToast({ title: `已追加${duration}分钟`, icon: 'success' });
+            }
+          }
+        });
       }
     });
   }, [applyExtraDuration, handleExtraDuration]);

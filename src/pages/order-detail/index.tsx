@@ -78,9 +78,9 @@ const OrderDetailPage: React.FC = () => {
             placeholderText: '请输入改派原因（选填）',
             success: (modalRes) => {
               if (modalRes.confirm) {
-                Taro.showToast({ title: '已取消派单，请重新分配', icon: 'success' });
                 if (orderId) {
-                  reassignOrder(orderId, '', modalRes.content || '客户要求改派');
+                  reassignOrder(orderId, '', '', '', modalRes.content || '客户要求改派');
+                  Taro.showToast({ title: '已取消派单，请重新分配', icon: 'success' });
                   setTimeout(() => {
                     Taro.navigateTo({ url: `/pages/order-assign/index?orderId=${orderId}` });
                   }, 1000);
@@ -89,7 +89,7 @@ const OrderDetailPage: React.FC = () => {
             }
           });
         } else if (res.tapIndex === 1 && orderId) {
-          reassignOrder(orderId, '', '调度取消派单');
+          reassignOrder(orderId, '', '', '', '调度取消派单');
           Taro.showToast({ title: '已取消派单', icon: 'success' });
         }
       }
@@ -104,7 +104,7 @@ const OrderDetailPage: React.FC = () => {
         const duration = durations[res.tapIndex];
         Taro.showModal({
           title: '追加时长',
-          content: `确定要为该订单追加${duration}分钟服务时长吗？`,
+          content: `确定要为该订单追加${duration}分钟服务时长吗？订单费用将增加¥${Math.round(duration / 30) * 50}元，刷新后仍然保留。`,
           success: (modalRes) => {
             if (modalRes.confirm && orderId) {
               applyExtraDuration(orderId, duration);
