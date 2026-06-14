@@ -1,0 +1,357 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 140rpx);
+}
+
+.card {
+  background-color: $color-bg-card;
+  margin: $spacing-md $page-padding;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  
+  &::before {
+    content: '';
+    width: 6rpx;
+    height: 28rpx;
+    background-color: $color-primary;
+    border-radius: 3rpx;
+    margin-right: $spacing-sm;
+  }
+}
+
+.companionInfo {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-md;
+  background-color: $color-bg-hover;
+}
+
+.info {
+  flex: 1;
+}
+
+.name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.meta {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.ratingSection {
+  text-align: center;
+  padding: $spacing-md 0;
+}
+
+.ratingTitle {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+}
+
+.starsRow {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.star {
+  font-size: 64rpx;
+  cursor: pointer;
+  transition: transform $transition-fast;
+  
+  &:active {
+    transform: scale(1.2);
+  }
+}
+
+.ratingText {
+  font-size: $font-size-lg;
+  color: $color-warning;
+  font-weight: $font-weight-semibold;
+}
+
+.tagsSection {
+  margin-top: $spacing-md;
+}
+
+.tagsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.tag {
+  @include button-reset;
+  height: 56rpx;
+  padding: 0 $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  
+  &.selected {
+    background-color: $color-primary-bg;
+    color: $color-primary;
+    border: 2rpx solid $color-primary;
+  }
+  
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.textareaSection {
+  margin-top: $spacing-md;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 240rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.charCount {
+  text-align: right;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+.photosSection {
+  margin-top: $spacing-md;
+}
+
+.photosRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.photoItem {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: $radius-md;
+  position: relative;
+  overflow: hidden;
+}
+
+.photoImg {
+  width: 100%;
+  height: 100%;
+}
+
+.photoDelete {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: $radius-round;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: $font-size-xs;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploadBtn {
+  @include button-reset;
+  width: 160rpx;
+  height: 160rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed $color-border;
+  
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.uploadIcon {
+  font-size: 40rpx;
+  margin-bottom: $spacing-xs;
+}
+
+.uploadText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.anonymousSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.anonymousLabel {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.switch {
+  width: 80rpx;
+  height: 44rpx;
+  border-radius: 22rpx;
+  background-color: $color-border;
+  position: relative;
+  transition: background-color $transition-base;
+  
+  &.checked {
+    background-color: $color-primary;
+  }
+}
+
+.switchDot {
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: $radius-round;
+  background-color: #fff;
+  transition: left $transition-base;
+  
+  .checked & {
+    left: 40rpx;
+  }
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(env(safe-area-inset-bottom) + $spacing-md);
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.submitBtn {
+  @include button-reset;
+  width: 100%;
+  height: 88rpx;
+  background-color: $color-primary;
+  border-radius: $radius-button;
+  font-size: $font-size-lg;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  
+  &:active {
+    opacity: 0.9;
+  }
+  
+  &.disabled {
+    background-color: $color-text-disabled;
+  }
+}
+
+.viewReviewSection {
+  background-color: $color-bg-card;
+  margin: $spacing-md $page-padding;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.reviewName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.reviewRating {
+  font-size: $font-size-lg;
+  color: $color-warning;
+}
+
+.reviewTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.reviewTag {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  background-color: $color-primary-bg;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-xs;
+}
+
+.reviewContent {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  margin-bottom: $spacing-md;
+}
+
+.reviewTime {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.replySection {
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.replyLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+}
+
+.replyContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}

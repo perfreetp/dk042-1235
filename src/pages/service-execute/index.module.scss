@@ -1,0 +1,415 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 140rpx);
+}
+
+.statusBanner {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-xl $page-padding;
+  color: $color-text-white;
+  text-align: center;
+}
+
+.statusTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-sm;
+}
+
+.statusDesc {
+  font-size: $font-size-md;
+  opacity: 0.9;
+}
+
+.timer {
+  margin-top: $spacing-md;
+  font-size: $font-size-xl;
+  font-weight: $font-semibold;
+  font-family: 'DIN Alternate', monospace;
+}
+
+.orderCard {
+  background-color: $color-bg-card;
+  margin: -40rpx $page-padding $spacing-md;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  position: relative;
+  z-index: 10;
+}
+
+.orderTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.orderInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.infoTag {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background-color: $color-bg-hover;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-xs;
+}
+
+.patientRow {
+  display: flex;
+  align-items: center;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.patientAvatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-round;
+  background-color: $color-primary-bg;
+  margin-right: $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  .icon {
+    font-size: $font-size-lg;
+  }
+}
+
+.patientInfo {
+  flex: 1;
+}
+
+.patientName {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-xs;
+}
+
+.patientMeta {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.callBtn {
+  @include button-reset;
+  height: 56rpx;
+  padding: 0 $spacing-md;
+  background-color: $color-success;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.section {
+  background-color: $color-bg-card;
+  margin: 0 $page-spacing;
+  margin-bottom: $spacing-md;
+  padding: $spacing-lg;
+  margin: 0 $page-padding $spacing-md;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  
+  &::before {
+    content: '';
+    width: 6rpx;
+    height: 28rpx;
+    background-color: $color-primary;
+    border-radius: 3rpx;
+    margin-right: $spacing-sm;
+  }
+}
+
+.checkInGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+}
+
+.checkInItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-md 0;
+  border-radius: $radius-md;
+  background-color: $color-bg-hover;
+  
+  &.active {
+    background-color: $color-primary-bg;
+  }
+  
+  &.done {
+    background-color: $color-success-bg;
+  }
+}
+
+.checkInIcon {
+  font-size: 48rpx;
+  margin-bottom: $spacing-xs;
+}
+
+.checkInLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  
+  .active & {
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+  
+  .done & {
+    color: $color-success;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.checkInTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+  
+  .done & {
+    color: $color-success;
+  }
+}
+
+.nodesList {
+  padding: $spacing-sm 0;
+}
+
+.nodeItem {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-md 0;
+  
+  &:last-child {
+    .nodeLine {
+      display: none;
+    }
+  }
+}
+
+.nodeLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48rpx;
+  margin-right: $spacing-md;
+}
+
+.nodeDot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: $radius-round;
+  background-color: $color-border;
+  flex-shrink: 0;
+  
+  &.done {
+    background-color: $color-success;
+  }
+  
+  &.current {
+    background-color: $color-primary;
+    box-shadow: 0 0 0 8rpx rgba($color-primary, 0.2);
+  }
+}
+
+.nodeLine {
+  flex: 1;
+  width: 2rpx;
+  background-color: $color-divider;
+  margin: $spacing-xs 0;
+  
+  .done & {
+    background-color: $color-success;
+  }
+}
+
+.nodeContent {
+  flex: 1;
+  padding-bottom: $spacing-sm;
+}
+
+.nodeName {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+  
+  .pending & {
+    color: $color-text-tertiary;
+  }
+}
+
+.nodeTime {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.nodeAction {
+  @include button-reset;
+  height: 56rpx;
+  padding: 0 $spacing-md;
+  background-color: $color-primary;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  margin-top: $spacing-sm;
+  
+  &.done {
+    background-color: $color-success-bg;
+    color: $color-success;
+  }
+}
+
+.receiptSection {
+  margin-top: $spacing-md;
+}
+
+.uploadBtn {
+  @include button-reset;
+  width: 200rpx;
+  height: 200rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed $color-border;
+  
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.uploadIcon {
+  font-size: 48rpx;
+  margin-bottom: $spacing-xs;
+}
+
+.uploadText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.photosRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.photoItem {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: $radius-md;
+  position: relative;
+  overflow: hidden;
+}
+
+.photoImg {
+  width: 100%;
+  height: 100%;
+}
+
+.photoDelete {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: $radius-round;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: $font-size-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resultTextarea {
+  width: 100%;
+  min-height: 200rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(env(safe-area-inset-bottom) + $spacing-md);
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: $spacing-md;
+}
+
+.btn {
+  @include button-reset;
+  flex: 1;
+  height: 88rpx;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  &.primary {
+    background-color: $color-primary;
+    color: $color-text-white;
+  }
+  
+  &.success {
+    background-color: $color-success;
+    color: $color-text-white;
+  }
+  
+  &.warning {
+    background-color: $color-warning;
+    color: $color-text-white;
+  }
+  
+  &.outline {
+    background-color: $color-bg-card;
+    border: 2rpx solid $color-primary;
+    color: $color-primary;
+  }
+  
+  &.disabled {
+    background-color: $color-text-disabled;
+    color: $color-text-white;
+  }
+}

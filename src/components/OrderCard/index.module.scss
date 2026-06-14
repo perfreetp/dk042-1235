@@ -1,0 +1,171 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.98);
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.overdueTag {
+  background-color: $color-error-bg;
+  border-radius: $radius-sm;
+  padding: 0 $spacing-sm;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overdueText {
+  font-size: $font-size-xs;
+  color: $color-error;
+  font-weight: $font-weight-medium;
+}
+
+.orderNo {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.hospitalRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.hospitalName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-right: $spacing-sm;
+}
+
+.department {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  background-color: $color-primary-bg;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-xs;
+}
+
+.patientRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.patientInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.patientName {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.patientAge,
+.patientGender {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.appointmentTime {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.checkItems {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.checkItem {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background-color: $color-bg-hover;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-xs;
+}
+
+.more {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.companionRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.value {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+}
+
+.priceSymbol {
+  font-size: $font-size-sm;
+  color: $color-error;
+  font-weight: $font-weight-medium;
+}
+
+.price {
+  font-size: $font-size-xl;
+  color: $color-error;
+  font-weight: $font-weight-bold;
+  margin-left: 2rpx;
+}
+
+.duration {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}

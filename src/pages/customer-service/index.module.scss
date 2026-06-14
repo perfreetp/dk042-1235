@@ -1,0 +1,289 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  border-bottom: 1rpx solid $color-divider;
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-md;
+}
+
+.info {
+  flex: 1;
+}
+
+.name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.status {
+  font-size: $font-size-sm;
+  color: $color-success;
+}
+
+.callBtn {
+  @include button-reset;
+  height: 64rpx;
+  padding: 0 $spacing-md;
+  background-color: $color-success;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-white;
+}
+
+.chatContainer {
+  flex: 1;
+  padding: $spacing-md $page-padding;
+  overflow-y: auto;
+}
+
+.messageItem {
+  display: flex;
+  margin-bottom: $spacing-lg;
+  
+  &.self {
+    flex-direction: row-reverse;
+    
+    .messageBubble {
+      background-color: $color-primary;
+      color: $color-text-white;
+      border-top-right-radius: $radius-xs;
+    }
+    
+    .messageTime {
+      text-align: left;
+    }
+  }
+}
+
+.messageAvatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+  margin: 0 $spacing-sm;
+}
+
+.messageContent {
+  max-width: 70%;
+}
+
+.messageBubble {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  border-top-left-radius: $radius-xs;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.messageText {
+  font-size: $font-size-md;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.messageTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+  text-align: right;
+}
+
+.inputBar {
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(env(safe-area-inset-bottom) + $spacing-md);
+  border-top: 1rpx solid $color-divider;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.inputWrapper {
+  flex: 1;
+  background-color: $color-bg-hover;
+  border-radius: $radius-button;
+  height: 72rpx;
+  padding: 0 $spacing-lg;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.sendBtn {
+  @include button-reset;
+  height: 72rpx;
+  padding: 0 $spacing-xl;
+  background-color: $color-primary;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+  
+  &.disabled {
+    background-color: $color-text-disabled;
+  }
+}
+
+.trackSection {
+  background-color: $color-bg-card;
+  padding: $spacing-lg $page-padding;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.trackTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.trackItems {
+  display: flex;
+  justify-content: space-between;
+}
+
+.trackItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 16rpx;
+    left: 50%;
+    width: 100%;
+    height: 4rpx;
+    background-color: $color-divider;
+    z-index: 0;
+  }
+  
+  &:last-child::after {
+    display: none;
+  }
+  
+  &.done::after {
+    background-color: $color-success;
+  }
+  
+  &.current::after {
+    background: linear-gradient(to right, $color-success, $color-divider);
+  }
+}
+
+.trackDot {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: $radius-round;
+  background-color: $color-border;
+  margin-bottom: $spacing-xs;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  
+  .done & {
+    background-color: $color-success;
+  }
+  
+  .current & {
+    background-color: $color-primary;
+    box-shadow: 0 0 0 8rpx rgba($color-primary, 0.2);
+  }
+}
+
+.trackLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+  
+  .done &, .current & {
+    color: $color-text-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.quickActions {
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-md $page-padding;
+  background-color: $color-bg-card;
+  border-bottom: 1rpx solid $color-divider;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.quickBtn {
+  @include button-reset;
+  flex-shrink: 0;
+  height: 56rpx;
+  padding: 0 $spacing-md;
+  background-color: $color-primary-bg;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.bottomActions {
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(env(safe-area-inset-bottom) + $spacing-md);
+  border-top: 1rpx solid $color-divider;
+  display: flex;
+  gap: $spacing-md;
+}
+
+.actionBtn {
+  @include button-reset;
+  flex: 1;
+  height: 80rpx;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  
+  &.primary {
+    background-color: $color-primary;
+    color: $color-text-white;
+  }
+  
+  &.outline {
+    background-color: $color-bg-card;
+    border: 2rpx solid $color-primary;
+    color: $color-primary;
+  }
+  
+  &:active {
+    opacity: 0.9;
+  }
+}

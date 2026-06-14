@@ -1,0 +1,45 @@
+@use '@/styles/variables.scss' as *;
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;
+  padding: 0 $spacing-sm;
+  
+  &.sm {
+    height: 36rpx;
+    min-width: 72rpx;
+  }
+  
+  &.md {
+    height: 48rpx;
+    min-width: 96rpx;
+    border-radius: $radius-sm;
+  }
+  
+  .text {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+  
+  &.pending {
+    background-color: $status-pending-bg;
+    color: $status-pending;
+  }
+  
+  &.assigned {
+    background-color: $status-assigned-bg;
+    color: $status-assigned;
+  }
+  
+  &.serving {
+    background-color: $status-serving-bg;
+    color: $status-serving;
+  }
+  
+  &.completed {
+    background-color: $status-completed-bg;
+    color: $status-completed;
+  }
+}

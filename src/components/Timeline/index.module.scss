@@ -1,0 +1,105 @@
+@use '@/styles/variables.scss' as *;
+
+.timeline {
+  padding: $spacing-sm 0;
+}
+
+.timelineItem {
+  display: flex;
+  min-height: 80rpx;
+  
+  &:last-child {
+    .line {
+      display: none;
+    }
+  }
+}
+
+.leftSide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40rpx;
+  margin-right: $spacing-md;
+}
+
+.dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: $radius-round;
+  background-color: $color-border;
+  flex-shrink: 0;
+  margin-top: 8rpx;
+}
+
+.line {
+  flex: 1;
+  width: 2rpx;
+  background-color: $color-divider;
+  margin: $spacing-xs 0;
+}
+
+.content {
+  flex: 1;
+  padding-bottom: $spacing-md;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.name {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.time {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.description {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  line-height: 1.5;
+}
+
+.done {
+  .dot {
+    background-color: $color-success;
+  }
+  
+  .line {
+    background-color: $color-success;
+  }
+  
+  .name {
+    color: $color-text-secondary;
+  }
+}
+
+.current {
+  .dot {
+    background-color: $color-primary;
+    box-shadow: 0 0 0 8rpx rgba($color-primary, 0.2);
+  }
+  
+  .name {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.pending {
+  .dot {
+    background-color: $color-border;
+  }
+  
+  .name {
+    color: $color-text-tertiary;
+  }
+}

@@ -1,0 +1,138 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  display: flex;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.98);
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+.avatarSection {
+  position: relative;
+  margin-right: $spacing-lg;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-round;
+  background-color: $color-bg-hover;
+}
+
+.statusDot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: $radius-round;
+  border: 4rpx solid $color-bg-card;
+  
+  &.success {
+    background-color: $color-success;
+  }
+  
+  &.warning {
+    background-color: $color-warning;
+  }
+  
+  &.default {
+    background-color: $color-text-tertiary;
+  }
+}
+
+.infoSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-right: $spacing-sm;
+}
+
+.levelTag {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-xs;
+  padding: 2rpx $spacing-sm;
+}
+
+.levelText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+}
+
+.rating {
+  font-size: $font-size-sm;
+  color: $color-warning;
+  font-weight: $font-weight-medium;
+}
+
+.orderCount,
+.experience {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.skillsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.skillTag {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  background-color: $color-bg-hover;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-xs;
+}
+
+.moreTag {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.distanceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid $color-divider;
+}
+
+.distance {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.freeTime {
+  font-size: $font-size-sm;
+  color: $color-success;
+  font-weight: $font-weight-medium;
+}
