@@ -32,6 +32,7 @@ const OrdersPage: React.FC = () => {
   
   const initOrders = useOrderStore(state => state.initOrders);
   const getOrdersByTime = useOrderStore(state => state.getOrdersByTime);
+  const orders = useOrderStore(state => state.orders);
 
   useDidShow(() => {
     initOrders();
@@ -59,7 +60,7 @@ const OrdersPage: React.FC = () => {
     }
 
     return result;
-  }, [activeTab, searchText, selectedHospital, timeFilter, getOrdersByTime]);
+  }, [activeTab, searchText, selectedHospital, timeFilter, getOrdersByTime, orders]);
 
   const handleTabClick = (key: string) => {
     setActiveTab(key);

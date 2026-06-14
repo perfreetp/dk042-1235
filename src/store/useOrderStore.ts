@@ -60,7 +60,7 @@ interface OrderStore {
   initOrders: () => void;
   resetStore: () => void;
   
-  getOrdersByTime: (filter: 'today' | 'yesterday' | 'week' | 'all') => Order[];
+  getOrdersByTime: (filter: 'today' | 'yesterday' | 'week' | 'month' | 'all') => Order[];
   getOrderById: (id: string) => Order | undefined;
   
   updateOrderStatus: (id: string, status: OrderStatus) => void;
@@ -228,6 +228,9 @@ export const useOrderStore = create<OrderStore>()(
         }
         if (filter === 'week') {
           return orders.filter(o => dayjs(o.createTime).isAfter(now.subtract(7, 'day').startOf('day')));
+        }
+        if (filter === 'month') {
+          return orders.filter(o => dayjs(o.createTime).isSame(now, 'month'));
         }
         return orders;
       },
@@ -437,7 +440,6 @@ export const useOrderStore = create<OrderStore>()(
                 return {
                   ...o,
                   actualDuration: newActual,
-                  duration: o.duration + extra.duration,
                   price: o.price + addPrice
                 };
               })
@@ -522,7 +524,7 @@ export const useOrderStore = create<OrderStore>()(
       }
     }),
     {
-      name: 'peizhen-order-store-v3',
+           name: 'peizhen-order-store-v4',
       partialize: (state) => ({
         orders: state.orders,
         complaints: state.complaints,

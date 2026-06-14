@@ -14,13 +14,14 @@ const StatsPage: React.FC = () => {
   const getStats = useOrderStore(state => state.getStats);
   const getOrdersByTime = useOrderStore(state => state.getOrdersByTime);
   const handleComplaint = useOrderStore(state => state.handleComplaint);
+  const orders = useOrderStore(state => state.orders);
 
   useDidShow(() => {
     initOrders();
   });
 
-  const stats = useMemo(() => getStats(activeTab), [activeTab, getStats]);
-  const rangeOrders = useMemo(() => getOrdersByTime(activeTab), [activeTab, getOrdersByTime]);
+  const stats = useMemo(() => getStats(activeTab), [activeTab, getStats, orders]);
+  const rangeOrders = useMemo(() => getOrdersByTime(activeTab), [activeTab, getOrdersByTime, orders]);
 
   const overdueOrders = useMemo(
     () => rangeOrders.filter(o => o.isOverdue && o.status !== 'completed'),

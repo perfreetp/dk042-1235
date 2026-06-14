@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro, { useRouter, useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
-import { useOrderStore, buildTrackNodesFromStatus } from '@/store/useOrderStore';
+import { useOrderStore, generateDefaultNodes } from '@/store/useOrderStore';
 import { mockCompanions } from '@/data/mockCompanions';
-import { Order } from '@/types/order';
+import { Order, ServiceNode } from '@/types/order';
 import styles from './index.module.scss';
 
 interface Message {
@@ -28,16 +28,20 @@ const CustomerServicePage: React.FC = () => {
   const sendSupplementToCompanion = useOrderStore(state => state.sendSupplementToCompanion);
   const applyExtraDuration = useOrderStore(state => state.applyExtraDuration);
   const initOrders = useOrderStore(state => state.initOrders);
+  const orders = useOrderStore(state => state.orders);
 
-  const order = useMemo(() => getOrderById(orderId || ''), [orderId, getOrderById]);
+  const order = useMemo(() => getOrderById(orderId || ''), [orderId, getOrderById, orders]);
   const companion = useMemo(() => {
     if (!order?.companionId) return null;
     return mockCompanions.find(c => c.id === order.companionId);
   }, [order]);
 
-  const trackNodes = useMemo(() => {
+  const trackNodes = useMemo<ServiceNode[]>(() => {
     if (!order) return [];
-    return buildTrackNodesFromStatus(order);
+    if (order.nodes && order.nodes.length > 0) {
+      return order.nodes.map(n => ({ ...n }));
+    }
+    return generateDefaultNodes(order.status);
   }, [order]);
 
   const initMessages = () => {

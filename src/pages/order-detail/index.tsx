@@ -20,6 +20,7 @@ const OrderDetailPage: React.FC = () => {
   const handleExtraDuration = useOrderStore(state => state.handleExtraDuration);
   const addComplaint = useOrderStore(state => state.addComplaint);
   const handleComplaint = useOrderStore(state => state.handleComplaint);
+  const orders = useOrderStore(state => state.orders);
 
   useDidShow(() => {
     initOrders();
@@ -27,7 +28,7 @@ const OrderDetailPage: React.FC = () => {
 
   const order = useMemo<Order | undefined>(() => {
     return getOrderById(orderId || '');
-  }, [orderId, getOrderById]);
+  }, [orderId, getOrderById, orders]);
 
   const companion = useMemo(() => {
     if (!order?.companionId) return null;
@@ -245,7 +246,7 @@ const OrderDetailPage: React.FC = () => {
               borderRadius: '8rpx'
             }}>
               <Text style={{ fontSize: '26rpx', color: '#1677FF' }}>
-                ⏱️ 已追加时长：+{order.actualDuration - order.duration}分钟
+                ⏱️ 原计划{order.duration}分钟，已追加{order.actualDuration - order.duration}分钟，总共{order.actualDuration}分钟
               </Text>
             </View>
           )}
@@ -455,7 +456,15 @@ const OrderDetailPage: React.FC = () => {
         <View className={styles.infoRow}>
           <Text className={styles.infoLabel}>服务时长</Text>
           <Text className={styles.infoValue}>
-            {order.actualDuration ? `${order.actualDuration}分钟（预计${order.duration}分钟）` : `${order.duration}分钟`}
+            {(() => {
+              const baseDuration = order.duration;
+              const totalDuration = order.actualDuration || baseDuration;
+              const extraDuration = Math.max(0, totalDuration - baseDuration);
+              if (extraDuration > 0) {
+                return `原计划${baseDuration}分钟，已追加${extraDuration}分钟，总共${totalDuration}分钟`;
+              }
+              return `${baseDuration}分钟`;
+            })()}
           </Text>
         </View>
         <View className={styles.infoRow}>

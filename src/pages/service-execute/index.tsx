@@ -196,7 +196,8 @@ const ServiceExecutePage: React.FC = () => {
       success: (res) => {
         if (res.confirm) {
           const baseDuration = Math.round((Date.now() - startTime) / 60000);
-          const duration = Math.max(baseDuration, order?.duration || 60);
+          const minDuration = order?.actualDuration || order?.duration || 60;
+          const duration = Math.max(baseDuration, minDuration);
           const finalNodes: ServiceNode[] = nodes.map((n, i) => ({
             ...n,
             status: 'done' as const,
@@ -285,10 +286,10 @@ const ServiceExecutePage: React.FC = () => {
             <Text>联系</Text>
           </View>
         </View>
-        {order.actualDuration && order.actualDuration !== order.duration && (
+        {order.actualDuration && order.actualDuration > order.duration && (
           <View style={{ marginTop: '16rpx', padding: '12rpx 20rpx', backgroundColor: '#e8f3ff', borderRadius: '8rpx' }}>
             <Text style={{ fontSize: '26rpx', color: '#1677FF' }}>
-              ⏱️ 已追加时长：{order.actualDuration - order.duration > 0 ? '+' : ''}{order.actualDuration - order.duration}分钟（共{order.actualDuration}分钟）
+              ⏱️ 原计划{order.duration}分钟，已追加{order.actualDuration - order.duration}分钟，总共{order.actualDuration}分钟
             </Text>
           </View>
         )}

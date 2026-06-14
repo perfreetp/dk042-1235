@@ -21,13 +21,14 @@ const HomePage: React.FC = () => {
   const applyExtraDuration = useOrderStore(state => state.applyExtraDuration);
   const handleExtraDuration = useOrderStore(state => state.handleExtraDuration);
   const addComplaint = useOrderStore(state => state.addComplaint);
+  const orders = useOrderStore(state => state.orders);
 
   useDidShow(() => {
     initOrders();
   });
 
-  const stats = useMemo(() => getStats('today'), [getStats]);
-  const todayOrders = useMemo(() => getOrdersByTime('today'), [getOrdersByTime]);
+  const stats = useMemo(() => getStats('today'), [getStats, orders]);
+  const todayOrders = useMemo(() => getOrdersByTime('today'), [getOrdersByTime, orders]);
 
   const hospitalGroups = useMemo(() => {
     const groups: Map<string, HospitalOrderGroup> = new Map();
@@ -250,12 +251,17 @@ const HomePage: React.FC = () => {
                         {order.checkItems.slice(0, 2).join('、')}
                         {order.checkItems.length > 2 ? '...' : ''}
                       </Text>
-                      {order.actualDuration && order.actualDuration !== order.duration && (
-                        <Text style={{ fontSize: '24rpx', color: '#1677FF', marginTop: '6rpx' }}>
-                          ⏱️ 时长 {order.duration}分钟
-                          {order.actualDuration > order.duration && ` (+${order.actualDuration - order.duration}分钟追加)`}
-                        </Text>
-                      )}
+                      {(() => {
+                        const baseDuration = order.duration;
+                        const totalDuration = order.actualDuration || baseDuration;
+                        const extraDuration = Math.max(0, totalDuration - baseDuration);
+                        return (
+                          <Text style={{ fontSize: '24rpx', color: '#1677FF', marginTop: '6rpx' }}>
+                            ⏱️ 原计划{baseDuration}分钟
+                            {extraDuration > 0 && `，已追加${extraDuration}分钟，总共${totalDuration}分钟`}
+                          </Text>
+                        );
+                      })()}
                       {order.complaint === '已处理' && (
                         <Text style={{ fontSize: '24rpx', color: '#52c41a', marginTop: '6rpx' }}>
                           ✓ 投诉已处理
